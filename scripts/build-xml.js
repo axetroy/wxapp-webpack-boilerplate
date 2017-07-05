@@ -12,10 +12,9 @@ const CONFIG = require('./config');
 const paths = CONFIG.paths;
 
 module.exports = function(options) {
-  glob('src/**/*.wxml', {}, function(err, files) {
+  glob('src/**/*.xml', {}, function(err, files) {
     if (err) throw err;
     files.forEach(file => {
-      console.log(file);
       const filePath = path.join(paths.root, file);
       const filePathRelativeToDist = path.relative(paths.src, filePath);
       const distFilePath = path.join(paths.dist, filePathRelativeToDist);

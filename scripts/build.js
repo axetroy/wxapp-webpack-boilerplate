@@ -4,6 +4,8 @@
 
 const buildJs = require('./build-js');
 const buildXml = require('./build-xml');
+const buildCss = require('./build-css');
 
 buildJs({});
 buildXml({});
+buildCss({});
