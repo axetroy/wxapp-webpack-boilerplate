@@ -9,8 +9,7 @@ Page({
     fail: 0
   },
   onLoad: function() {
-    console.log('onload index');
-    wxFetch('https://www.baidu.com')
+    wxFetch('https://api.github.com')
       .then(function(res) {
         return res.json();
       })

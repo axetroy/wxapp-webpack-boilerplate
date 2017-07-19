@@ -18,9 +18,11 @@ module.exports = function(options) {
       const filePath = path.join(paths.root, file);
       const filePathRelativeToDist = path.relative(paths.src, filePath);
       const distFilePath = path.join(paths.dist, filePathRelativeToDist);
-      fs.copy(filePath, distFilePath).then(function() {
-        console.log(`[移动]: ${file}`);
-      });
+      fs
+        .copy(filePath, distFilePath.replace(/\.xml$/, '.wxml'))
+        .then(function() {
+          console.log(`[移动]: ${file}`);
+        });
     });
   });
 };
