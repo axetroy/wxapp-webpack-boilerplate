@@ -3,14 +3,12 @@
  */
 
 function unixify(p) {
-  return (
-    '/' +
-    p
-      .replace(/^\/+/g, '')
-      .replace(/^[A-Z]/, match => match.toLowerCase())
-      .replace(/\:/, '')
-      .replace(/\\/g, '/')
-  );
+  return p
+    .replace(/^\/+/g, '')
+    .replace(/^[A-Z]/, match => match.toLowerCase())
+    .replace(/\:/g, '')
+    .replace(/\/\//g, '/')
+    .replace(/\\/g, '/');
 }
 
 module.exports = {

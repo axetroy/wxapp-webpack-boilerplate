@@ -6,23 +6,44 @@ const path = require('path');
 const webpack = require('webpack');
 const glob = require('glob');
 const fs = require('fs-extra');
+const co = require('co');
 
 const CONFIG = require('./config');
 
 const paths = CONFIG.paths;
 
-module.exports = function(options) {
-  glob('src/**/*.xml', {}, function(err, files) {
-    if (err) throw err;
-    files.forEach(file => {
-      const filePath = path.join(paths.root, file);
-      const filePathRelativeToDist = path.relative(paths.src, filePath);
-      const distFilePath = path.join(paths.dist, filePathRelativeToDist);
-      fs
-        .copy(filePath, distFilePath.replace(/\.xml$/, '.wxml'))
-        .then(function() {
-          console.log(`[移动]: ${file}`);
-        });
+class Builder {
+  constructor() {
+    this.files = [];
+  }
+  load(filePath) {
+    this.files.push(filePath);
+  }
+  compile() {
+    const files = this.files;
+
+    return co(function*() {
+      while (files.length) {
+        let file = files.shift();
+        file = file.replace(/^(\/+)?src/, '');
+        const srcFilePath = path.join(paths.src, file);
+        const distFilePath = path
+          .join(paths.dist, file)
+          .replace(/\.w?xml$/, '.wxml');
+        yield fs.ensureFile(distFilePath);
+        yield fs.writeFile(
+          distFilePath,
+          yield fs.readFile(srcFilePath, 'utf8'),
+          'utf8'
+        );
+        console.log(`[WXML]: ${file}`);
+      }
+
+      console.log(`[WXML]: Done!`);
+    }).catch(err => {
+      console.error(err);
     });
-  });
-};
+  }
+}
+
+module.exports = new Builder();
