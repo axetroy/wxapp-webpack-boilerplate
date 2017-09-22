@@ -1,3 +1,5 @@
+[![Greenkeeper badge](https://badges.greenkeeper.io/axetroy/wxapp-webpack-boilerplate.svg)](https://greenkeeper.io/)
+
 # 微信小程序的webpack模板
 
 ## 使用
