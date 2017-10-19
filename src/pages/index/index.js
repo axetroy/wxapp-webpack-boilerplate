@@ -1,8 +1,6 @@
 //index.js
+import wxFetch from 'wxapp-fetch';
 
-const wxFetch = require('../../wxapp-fetch').default;
-
-var app = getApp();
 Page({
   data: {
     success: 0,
