@@ -3,10 +3,6 @@
  */
 const path = require('path');
 const fs = require('fs-extra');
-const webpack = require('webpack');
-const glob = require('glob');
-const co = require('co');
-const Promise = require('bluebird');
 
 const CONFIG = require('./config');
 
@@ -16,13 +12,19 @@ class Builder {
   constructor() {
     this.files = [];
   }
+  clear() {
+    this.files = [];
+  }
   load(filePath) {
+    if (this.files.findIndex(v => v === filePath) >= 0) {
+      return;
+    }
     this.files.push(filePath);
   }
-  compile() {
+  async compile() {
     const files = this.files;
 
-    return co(function*() {
+    try {
       while (files.length) {
         let file = files.shift();
         file = file.replace(/^(\/+)?src/, '');
@@ -33,18 +35,18 @@ class Builder {
           .replace(/\.less$/, '.wxss')
           .replace(/\.sass$/, '.wxss')
           .replace(/\.css$/, '.wxss');
-        yield fs.ensureFile(distFilePath);
-        yield fs.writeFile(
+        await fs.ensureFile(distFilePath);
+        await fs.writeFile(
           distFilePath,
-          yield fs.readFile(srcFilePath, 'utf8'),
+          await fs.readFile(srcFilePath, 'utf8'),
           'utf8'
         );
         console.log(`[WXSS]: ${file}`);
       }
       console.log(`[WXSS]: Done!`);
-    }).catch(err => {
+    } catch (err) {
       console.error(err);
-    });
+    }
   }
 }
 

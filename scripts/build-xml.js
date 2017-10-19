@@ -3,10 +3,7 @@
  */
 
 const path = require('path');
-const webpack = require('webpack');
-const glob = require('glob');
 const fs = require('fs-extra');
-const co = require('co');
 
 const CONFIG = require('./config');
 
@@ -16,13 +13,18 @@ class Builder {
   constructor() {
     this.files = [];
   }
+  clear(){
+    this.files = [];
+  }
   load(filePath) {
+    if (this.files.findIndex(v => v === filePath) >= 0) {
+      return;
+    }
     this.files.push(filePath);
   }
-  compile() {
+  async compile() {
     const files = this.files;
-
-    return co(function*() {
+    try {
       while (files.length) {
         let file = files.shift();
         file = file.replace(/^(\/+)?src/, '');
@@ -30,19 +32,19 @@ class Builder {
         const distFilePath = path
           .join(paths.dist, file)
           .replace(/\.w?xml$/, '.wxml');
-        yield fs.ensureFile(distFilePath);
-        yield fs.writeFile(
+        await fs.ensureFile(distFilePath);
+        await fs.writeFile(
           distFilePath,
-          yield fs.readFile(srcFilePath, 'utf8'),
+          await fs.readFile(srcFilePath, 'utf8'),
           'utf8'
         );
         console.log(`[WXML]: ${file}`);
       }
 
       console.log(`[WXML]: Done!`);
-    }).catch(err => {
+    } catch (err) {
       console.error(err);
-    });
+    }
   }
 }
 

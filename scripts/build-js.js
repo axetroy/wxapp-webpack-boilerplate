@@ -4,8 +4,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const fs = require('fs-extra');
-const babel = require('babel-core');
-const co = require('co');
 const utils = require('./utils');
 
 const CONFIG = require('./config');
@@ -110,26 +108,32 @@ class Builer {
   constructor() {
     this.files = [];
   }
+  clear() {
+    this.files = [];
+  }
   load(filePath) {
+    if (this.files.findIndex(v => v === filePath) >= 0) {
+      return;
+    }
     this.files.push(filePath);
   }
-  compile() {
-    const files = this.files.map(file => {
-      file = file.replace(/^(\/+)?src/, '').replace(/^\/+/, '');
-      WEBPACK_MODULE.addModule(file);
-      return file;
-    });
+  async compile() {
+    try {
+      const files = this.files.map(file => {
+        file = file.replace(/^(\/+)?src/, '').replace(/^\/+/, '');
+        WEBPACK_MODULE.addModule(file);
+        return file;
+      });
 
-    return co(function*() {
       // 创建缓存文件
       const tempFile = path.join(paths.root, WEBPACK_TEMP_FILE);
-      yield fs.ensureFile(tempFile);
+      await fs.ensureFile(tempFile);
 
-      yield fs.writeFile(tempFile, WEBPACK_MODULE.generate(), 'utf8');
+      await fs.writeFile(tempFile, WEBPACK_MODULE.generate(), 'utf8');
 
       // 打包缓存文件
-      yield new Promise((resolve, reject) => {
-        webpack(WEBPACK_CONFIG, function(err) {
+      await new Promise((resolve, reject) => {
+        webpack(WEBPACK_CONFIG, function(err, stdout) {
           if (err) return reject(err);
           resolve();
         });
@@ -143,11 +147,11 @@ class Builer {
 
         const distFile = path.join(paths.dist, file);
 
-        yield fs.ensureFile(distFile);
+        await fs.ensureFile(distFile);
 
         const requireFile = getRelative(file).replace(/\.js$/, '');
 
-        yield fs.writeFile(
+        await fs.writeFile(
           distFile,
           `require("${requireFile}")(${id});`,
           'utf8'
@@ -156,9 +160,9 @@ class Builer {
       }
 
       console.log(`[JS]: Done!`);
-    }).catch(err => {
+    } catch (err) {
       console.error(err);
-    });
+    }
   }
 }
 

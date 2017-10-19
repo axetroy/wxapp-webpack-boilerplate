@@ -1,6 +1,7 @@
 /**
  * Created by axetroy on 2017/7/19.
  */
+const glob = require('glob');
 
 function unixify(p) {
   return p
@@ -11,6 +12,15 @@ function unixify(p) {
     .replace(/\\/g, '/');
 }
 
+function query(selector, options = {}) {
+  return new Promise((resolve, reject) => {
+    glob(selector, options, (err, files) => {
+      err ? reject(err) : resolve(files);
+    });
+  });
+}
+
 module.exports = {
-  unixify
+  unixify,
+  query
 };

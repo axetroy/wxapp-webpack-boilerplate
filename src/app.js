@@ -1,6 +1,6 @@
 //app.js
 App({
   onLaunch: function() {
-    console.log('Launch The App 123');
+    console.log('Launch The App hello world');
   }
 });
