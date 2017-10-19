@@ -16,6 +16,10 @@ class Module {
     this.modules = [];
   }
   addModule(filePath) {
+    // 避免重复添加模块
+    if (this.modules.findIndex(module => module.path === filePath) >= 0) {
+      return;
+    }
     this.modules.push({ path: filePath, id: this.id });
     this.id++;
   }
@@ -33,8 +37,8 @@ class Module {
       modules += `
   /**
   Generate By Webpack Module
-  FILE: ${file.path}
-  ID: ${file.id}
+  file: ${file.path}
+  id: ${file.id}
   **/
   WEBPACK_MODULE[${file.id}] = function() {
       return require("../src/${utils.unixify(file.path)}");
@@ -42,15 +46,14 @@ class Module {
         `;
     });
 
-    return `
+    return `// Generate By Webpack Module
 module.exports = function(moduleId) {
   const WEBPACK_MODULE = {};
 
   ${modules}
 
   return WEBPACK_MODULE[moduleId] ? WEBPACK_MODULE[moduleId]() : {};
-};
-    `;
+};`;
   }
 }
 
@@ -128,10 +131,9 @@ class Builer {
       // 创建缓存文件
       const tempFile = path.join(paths.root, WEBPACK_TEMP_FILE);
       await fs.ensureFile(tempFile);
-
       await fs.writeFile(tempFile, WEBPACK_MODULE.generate(), 'utf8');
 
-      // 打包缓存文件
+      // 使用webpack打包缓存文件
       await new Promise((resolve, reject) => {
         webpack(WEBPACK_CONFIG, function(err, stdout) {
           if (err) return reject(err);
@@ -139,18 +141,23 @@ class Builer {
         });
       });
 
+      // 把各文件移动到build目录下
       const __files__ = [].concat(files);
 
       while (__files__.length) {
         const file = __files__.shift();
+        // 获取该文件对应的id
         const id = WEBPACK_MODULE.getFileId(file);
 
+        // 最终输出文件路径
         const distFile = path.join(paths.dist, file);
 
         await fs.ensureFile(distFile);
 
+        // 引用主体包
         const requireFile = getRelative(file).replace(/\.js$/, '');
 
+        // 写入文件
         await fs.writeFile(
           distFile,
           `require("${requireFile}")(${id});`,
