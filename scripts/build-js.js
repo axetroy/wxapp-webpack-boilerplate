@@ -67,9 +67,10 @@ const WEBPACK_TEMP_FILE = './.temp/m.js';
  * 打包Javascript
  * @param inputFile
  * @param outputFile
+ * @param plugins
  * @returns {Promise}
  */
-function packJs(inputFile, outputFile) {
+function packJs(inputFile, outputFile, plugins = []) {
   const outputPathInfo = path.parse(outputFile);
   const WEBPACK_CONFIG = {
     entry: inputFile,
@@ -91,7 +92,8 @@ function packJs(inputFile, outputFile) {
           loader: 'babel-loader'
         }
       ]
-    }
+    },
+    plugins: plugins.filter(v => v)
   };
   // 使用webpack打包缓存文件
   return new Promise((resolve, reject) => {
@@ -115,7 +117,17 @@ async function transformJs(inputFile, outputFile) {
       {
         env: process.env,
         presets: ['env'],
-        plugins: []
+        plugins: [
+          [
+            'transform-runtime',
+            {
+              helpers: false,
+              polyfill: false,
+              regenerator: true,
+              moduleName: 'babel-runtime'
+            }
+          ]
+        ]
       },
       function(err, result) {
         if (err) return reject(err);
@@ -180,6 +192,20 @@ class Builer {
       await packJs(tempFile, MAIN_FILE_PATH);
 
       await transformJs(MAIN_FILE_PATH, MAIN_FILE_PATH);
+
+      await packJs(MAIN_FILE_PATH, MAIN_FILE_PATH, [
+        CONFIG.isProduction
+          ? new webpack.optimize.UglifyJsPlugin({
+              compress: {
+                warnings: false,
+                drop_console: false
+              }
+            })
+          : void 0,
+        new webpack.DefinePlugin({
+          'process.env.NODE_ENV': `"${process.env.NODE_ENV}"`
+        })
+      ]);
 
       // 把各文件移动到build目录下
       const __files__ = [].concat(files);

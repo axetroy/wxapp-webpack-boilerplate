@@ -14,7 +14,7 @@ const { query } = require('./utils');
 
 const watch = process.env.NODE_WATCH;
 
-function buildFile(file) {
+function loadFile(file) {
   const f = path.parse(file);
 
   switch (f.ext) {
@@ -58,11 +58,13 @@ const build = debounce(async function build() {
   try {
     const files = await query('src/**/*.*', {});
 
+    // 加载所有文件
     while (files.length) {
       const file = files.shift();
-      await buildFile(file);
+      await loadFile(file);
     }
 
+    // 真正的编译操作
     await Promise.all([
       JsBuilder.compile(),
       XmlBuilder.compile(),
@@ -80,11 +82,16 @@ if (watch) {
   // One-liner for current directory, ignores .dotfiles
   chokidar
     .watch('src', { ignored: /((^|[\/\\])\..)|___jb_tmp___/ })
-    .on('all', (event, path) => {
-      JsBuilder.clear();
-      XmlBuilder.clear();
-      CssBuilder.clear();
-      FileBuilder.clear();
+    .on('add', path => {
+      console.log(`File ${path} has been added`);
+      build();
+    })
+    .on('change', path => {
+      console.log(`File ${path} has been changed`);
+      build();
+    })
+    .on('unlink', path => {
+      console.log(`File ${path} has been removed`);
       build();
     });
 }

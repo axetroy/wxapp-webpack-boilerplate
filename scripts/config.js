@@ -7,6 +7,7 @@ const path = require('path');
 const root = path.join(__dirname, '../');
 
 module.exports = {
+  isProduction: process.env.NODE_ENV === 'production',
   paths: {
     cwd: process.cwd(),
     root,
