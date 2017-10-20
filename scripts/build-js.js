@@ -4,6 +4,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const fs = require('fs-extra');
+const babel = require('babel-core');
 const utils = require('./utils');
 
 const CONFIG = require('./config');
@@ -62,40 +63,80 @@ const WEBPACK_MODULE = new Module();
 const WEBPACK_BUNDLE_NAME = 'm.js';
 const WEBPACK_TEMP_FILE = './.temp/m.js';
 
-const WEBPACK_CONFIG = {
-  entry: WEBPACK_TEMP_FILE,
-  output: {
-    path: paths.dist,
-    filename: WEBPACK_BUNDLE_NAME,
-    library: 'g',
-    libraryTarget: 'commonjs2'
-  },
-  resolve: {
-    modules: ['node_modules'],
-    extensions: ['.coffee', '.js', '.ts']
-  },
-  module: {
-    loaders: [
-      {
-        test: /\.(jsx|js)?$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: 'babel-loader',
-        options: {
-          presets: [
-            'flow',
-            [
-              'es2015',
-              {
-                modules: false
-              }
-            ]
-          ],
-          plugins: []
+/**
+ * 打包Javascript
+ * @param inputFile
+ * @param outputFile
+ * @returns {Promise}
+ */
+function packJs(inputFile, outputFile) {
+  const outputPathInfo = path.parse(outputFile);
+  const WEBPACK_CONFIG = {
+    entry: inputFile,
+    output: {
+      path: outputPathInfo.dir,
+      filename: outputPathInfo.name + outputPathInfo.ext,
+      library: 'g',
+      libraryTarget: 'commonjs2'
+    },
+    resolve: {
+      modules: ['node_modules'],
+      extensions: ['.coffee', '.js', '.ts']
+    },
+    module: {
+      loaders: [
+        {
+          test: /\.(jsx|js)?$/,
+          exclude: /(node_modules|bower_components)/,
+          loader: 'babel-loader'
         }
+      ]
+    }
+  };
+  // 使用webpack打包缓存文件
+  return new Promise((resolve, reject) => {
+    webpack(WEBPACK_CONFIG, function(err, stdout) {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+}
+
+/**
+ * 转换Javascript
+ * @param inputFile
+ * @param outputFile
+ * @returns {Promise.<void>}
+ */
+async function transformJs(inputFile, outputFile) {
+  const result = await new Promise((resolve, reject) => {
+    babel.transformFile(
+      inputFile,
+      {
+        env: process.env,
+        presets: ['env'],
+        plugins: []
+      },
+      function(err, result) {
+        if (err) return reject(err);
+        resolve(result);
       }
-    ]
-  }
-};
+    );
+  });
+  await fs.ensureFile(outputFile);
+  await fs.writeFile(
+    outputFile,
+    `// wrapper start
+;(function(){
+
+
+${result.code}
+
+
+// wrapper end
+})();`
+  );
+}
 
 // 生成js文件相对于main.js的路径，要require这个main.js
 function getRelative(file) {
@@ -121,9 +162,12 @@ class Builer {
     this.files.push(filePath);
   }
   async compile() {
+    // 最终输出的js包文件
+    const MAIN_FILE_PATH = path.join(CONFIG.paths.dist, WEBPACK_BUNDLE_NAME);
+
     try {
       const files = this.files.map(file => {
-        file = file.replace(/^(\/+)?src/, '').replace(/^\/+/, '');
+        file = path.relative(CONFIG.paths.src, file);
         WEBPACK_MODULE.addModule(file);
         return file;
       });
@@ -133,13 +177,9 @@ class Builer {
       await fs.ensureFile(tempFile);
       await fs.writeFile(tempFile, WEBPACK_MODULE.generate(), 'utf8');
 
-      // 使用webpack打包缓存文件
-      await new Promise((resolve, reject) => {
-        webpack(WEBPACK_CONFIG, function(err, stdout) {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
+      await packJs(tempFile, MAIN_FILE_PATH);
+
+      await transformJs(MAIN_FILE_PATH, MAIN_FILE_PATH);
 
       // 把各文件移动到build目录下
       const __files__ = [].concat(files);
@@ -155,7 +195,9 @@ class Builer {
         await fs.ensureFile(distFile);
 
         // 引用主体包
-        const requireFile = getRelative(file).replace(/\.js$/, '');
+        const requireFile = path.normalize(
+          getRelative(file).replace(/\.js$/, '')
+        );
 
         // 写入文件
         await fs.writeFile(
@@ -163,10 +205,10 @@ class Builer {
           `require("${requireFile}")(${id});`,
           'utf8'
         );
-        console.log(`[JS]: ${file}`);
+        console.info(`[JS]: ${file}`);
       }
 
-      console.log(`[JS]: Done!`);
+      console.info(`[JS]: Done!`);
     } catch (err) {
       console.error(err);
     }

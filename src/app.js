@@ -1,6 +1,6 @@
 //app.js
 App({
-  onLaunch: function() {
+  onLaunch: async function() {
     console.log('Launch The App hello world');
   }
 });

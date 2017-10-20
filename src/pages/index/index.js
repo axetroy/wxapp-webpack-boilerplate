@@ -6,7 +6,7 @@ Page({
     success: 0,
     fail: 0
   },
-  onLoad: function() {
+  onLoad: async function() {
     wxFetch('https://api.github.com')
       .then(function(res) {
         return res.json();
