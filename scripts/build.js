@@ -11,10 +11,16 @@ const CssBuilder = require('./build-css');
 const FileBuilder = require('./build-file');
 
 const { query } = require('./utils');
+const CONFIG = require('./config');
 
 const watch = process.env.NODE_WATCH;
 
-function loadFile(file) {
+/**
+ * load up unload a file
+ * @param file
+ * @param action
+ */
+function handlerFile(file, action) {
   const f = path.parse(file);
 
   switch (f.ext) {
@@ -22,46 +28,99 @@ function loadFile(file) {
     case '.jsx':
     case '.ts':
     case '.tsx':
-      JsBuilder.load(file);
+      JsBuilder[action](file);
       break;
     case '.css':
     case '.scss':
     case '.less':
     case '.sass':
     case '.wxss':
-      CssBuilder.load(file);
+      CssBuilder[action](file);
       break;
     case '.xml':
     case '.wxml':
-      XmlBuilder.load(file);
+      XmlBuilder[action](file);
       break;
     case '.json':
-      FileBuilder.load(file);
+      FileBuilder[action](file);
       break;
     case '.yaml':
     case '.yml':
-      FileBuilder.load(file);
+      FileBuilder[action](file);
       break;
     case '.pmg':
     case '.jpg':
     case '.gif':
-      FileBuilder.load(file);
+      FileBuilder[action](file);
       break;
     default:
-      FileBuilder.load(file);
+      if (f.ext) {
+        FileBuilder[action](file);
+      }
   }
 }
 
-const build = debounce(async function build() {
-  console.log(`Building program...`);
+function loadFile(file) {
+  return handlerFile(file, 'load');
+}
 
+function unloadFile(file) {
+  return handlerFile(file, 'unload');
+}
+
+/**
+ * compile a file
+ * @param absFilePath
+ */
+const compile = debounce(function compile(absFilePath) {
+  const pathInfo = path.parse(absFilePath);
+  switch (pathInfo.ext) {
+    case '.js':
+    case '.jsx':
+    case '.ts':
+    case '.tsx':
+      JsBuilder.compile();
+      break;
+    case '.css':
+    case '.scss':
+    case '.less':
+    case '.sass':
+    case '.wxss':
+      CssBuilder.compile();
+      break;
+    case '.xml':
+    case '.wxml':
+      XmlBuilder.compile();
+      break;
+    case '.json':
+      FileBuilder.compile();
+      break;
+    case '.yaml':
+    case '.yml':
+      FileBuilder.compile();
+      break;
+    case '.pmg':
+    case '.jpg':
+    case '.gif':
+      FileBuilder.compile();
+      break;
+    default:
+      FileBuilder.compile();
+  }
+}, 1000);
+
+/**
+ * run build task
+ * @type {Function}
+ */
+const build = debounce(async function build() {
   try {
-    const files = await query('src/**/*.*', {});
+    const files = await query(path.join(CONFIG.paths.src, '**', '*'), {});
 
     // 加载所有文件
     while (files.length) {
-      const file = files.shift();
-      await loadFile(file);
+      const absFilePath = files.shift();
+      loadFile(absFilePath);
     }
 
     // 真正的编译操作
@@ -71,27 +130,39 @@ const build = debounce(async function build() {
       CssBuilder.compile(),
       FileBuilder.compile()
     ]);
+    console.info(`Build done...`);
   } catch (err) {
     console.error(err);
   }
 }, 1000);
 
-build();
+(async () => {
+  try {
+    await build();
 
-if (watch) {
-  // One-liner for current directory, ignores .dotfiles
-  chokidar
-    .watch('src', { ignored: /((^|[\/\\])\..)|___jb_tmp___/ })
-    .on('add', path => {
-      console.log(`File ${path} has been added`);
-      build();
-    })
-    .on('change', path => {
-      console.log(`File ${path} has been changed`);
-      build();
-    })
-    .on('unlink', path => {
-      console.log(`File ${path} has been removed`);
-      build();
-    });
-}
+    if (watch) {
+      // One-liner for current directory, ignores .dotfiles
+      chokidar
+        .watch('src', { ignored: /((^|[\/\\])\..)|___jb_tmp___/ })
+        .on('add', filePath => {
+          console.info(`[ADD]: ${filePath}`);
+          const absFilePath = path.join(process.cwd(), filePath);
+          loadFile(absFilePath);
+          compile(absFilePath);
+        })
+        .on('change', filePath => {
+          console.info(`[CHANGE]: ${filePath}`);
+          const absFilePath = path.join(process.cwd(), filePath);
+          compile(absFilePath);
+        })
+        .on('unlink', filePath => {
+          console.info(`[DELETE]: ${filePath}`);
+          const absFilePath = path.join(process.cwd(), filePath);
+          unloadFile(absFilePath);
+          compile(absFilePath);
+        });
+    }
+  } catch (err) {
+    console.error(err);
+  }
+})();

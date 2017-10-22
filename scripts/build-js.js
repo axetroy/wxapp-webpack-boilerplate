@@ -6,23 +6,36 @@ const webpack = require('webpack');
 const fs = require('fs-extra');
 const babel = require('babel-core');
 const utils = require('./utils');
+const Builder = require('./Builder');
 
 const CONFIG = require('./config');
 
 const paths = CONFIG.paths;
+
+// 打包的文件
+const BUNDLE_PATH = path.join(paths.dist, 'm.js');
+// 创建缓存文件
+const TEMP_JS_FILE = path.join(paths.temp, 'temp.js');
 
 class Module {
   constructor() {
     this.id = 0;
     this.modules = [];
   }
-  addModule(filePath) {
+  load(filePath) {
+    filePath = path.normalize(filePath);
     // 避免重复添加模块
     if (this.modules.findIndex(module => module.path === filePath) >= 0) {
       return;
     }
     this.modules.push({ path: filePath, id: this.id });
     this.id++;
+  }
+  unload(filePath) {
+    const index = this.modules.findIndex(v => v.path === filePath);
+    if (index >= 0) {
+      this.modules.splice(index, 1);
+    }
   }
   getFileId(filePath) {
     const m = this.modules.find(
@@ -31,37 +44,30 @@ class Module {
     if (!m) return null;
     return m.id;
   }
-  generate() {
-    let modules = ``;
-
-    this.modules.forEach(file => {
-      modules += `
+  get content() {
+    const templates = this.modules.map(file => {
+      return `
   /**
   Generate By Webpack Module
   file: ${file.path}
   id: ${file.id}
   **/
-  WEBPACK_MODULE[${file.id}] = function() {
-      return require("../src/${utils.unixify(file.path)}");
-  };
-        `;
+  webpackModule[${file.id}] = () => require("${utils.unixify(
+        path.relative(paths.temp, file.path)
+      )}");`;
     });
 
     return `// Generate By Webpack Module
 module.exports = function(moduleId) {
-  const WEBPACK_MODULE = {};
+  const webpackModule = {};
+  ${templates.join('\n')}
 
-  ${modules}
-
-  return WEBPACK_MODULE[moduleId] ? WEBPACK_MODULE[moduleId]() : {};
+  return webpackModule[moduleId] ? webpackModule[moduleId]() : {};
 };`;
   }
 }
 
-const WEBPACK_MODULE = new Module();
-
-const WEBPACK_BUNDLE_NAME = 'm.js';
-const WEBPACK_TEMP_FILE = './.temp/m.js';
+const webpackModule = new Module();
 
 /**
  * 打包Javascript
@@ -152,48 +158,38 @@ ${result.code}
 
 // 生成js文件相对于main.js的路径，要require这个main.js
 function getRelative(file) {
-  const mainPath = path.join(paths.dist, WEBPACK_BUNDLE_NAME);
-  const filePath = path.join(paths.dist, file);
   return utils
-    .unixify(path.relative(filePath, mainPath))
+    .unixify(path.relative(file, BUNDLE_PATH))
     .replace(/^\.\.\//, './')
     .replace(/^\/?\.+\/?/, './');
 }
 
-class Builer {
+class JsBuilder extends Builder {
   constructor() {
-    this.files = [];
-  }
-  clear() {
-    this.files = [];
+    super();
   }
   load(filePath) {
-    if (this.files.findIndex(v => v === filePath) >= 0) {
-      return;
-    }
-    this.files.push(filePath);
+    super.load(filePath);
+    webpackModule.load(filePath);
+  }
+  unload(filePath) {
+    super.load(filePath);
+    webpackModule.unload(filePath);
   }
   async compile() {
-    // 最终输出的js包文件
-    const MAIN_FILE_PATH = path.join(CONFIG.paths.dist, WEBPACK_BUNDLE_NAME);
-
     try {
-      const files = this.files.map(file => {
-        file = path.relative(CONFIG.paths.src, file);
-        WEBPACK_MODULE.addModule(file);
-        return file;
-      });
+      // 把各文件移动到build目录下
+      const files = [].concat(Object.keys(this.files));
 
-      // 创建缓存文件
-      const tempFile = path.join(paths.root, WEBPACK_TEMP_FILE);
-      await fs.ensureFile(tempFile);
-      await fs.writeFile(tempFile, WEBPACK_MODULE.generate(), 'utf8');
+      // write temp js file
+      await fs.ensureFile(TEMP_JS_FILE);
+      await fs.writeFile(TEMP_JS_FILE, webpackModule.content, 'utf8');
 
-      await packJs(tempFile, MAIN_FILE_PATH);
+      await packJs(TEMP_JS_FILE, BUNDLE_PATH);
 
-      await transformJs(MAIN_FILE_PATH, MAIN_FILE_PATH);
+      await transformJs(BUNDLE_PATH, BUNDLE_PATH);
 
-      await packJs(MAIN_FILE_PATH, MAIN_FILE_PATH, [
+      await packJs(BUNDLE_PATH, BUNDLE_PATH, [
         CONFIG.isProduction
           ? new webpack.optimize.UglifyJsPlugin({
               compress: {
@@ -207,38 +203,39 @@ class Builer {
         })
       ]);
 
-      // 把各文件移动到build目录下
-      const __files__ = [].concat(files);
+      while (files.length) {
+        const absSourceFilePath = files.shift();
+        const relativeSourceFilePath = path.relative(
+          CONFIG.paths.src,
+          absSourceFilePath
+        );
+        const absDistFilePath = path.join(
+          CONFIG.paths.dist,
+          relativeSourceFilePath
+        );
 
-      while (__files__.length) {
-        const file = __files__.shift();
         // 获取该文件对应的id
-        const id = WEBPACK_MODULE.getFileId(file);
+        const id = webpackModule.getFileId(absSourceFilePath);
 
-        // 最终输出文件路径
-        const distFile = path.join(paths.dist, file);
-
-        await fs.ensureFile(distFile);
+        // 确保输出文件存在
+        await fs.ensureFile(absDistFilePath);
 
         // 引用主体包
-        const requireFile = utils.unixify(
-          path.normalize(getRelative(file).replace(/\.js$/, ''))
+        const requireFile = path.normalize(
+          getRelative(absDistFilePath).replace(/\.js$/, '')
         );
 
         // 写入文件
         await fs.writeFile(
-          distFile,
+          absDistFilePath,
           `require("${utils.unixify(requireFile)}")(${id});`,
           'utf8'
         );
-        console.info(`[JS]: ${file}`);
       }
-
-      console.info(`[JS]: Done!`);
     } catch (err) {
       console.error(err);
     }
   }
 }
 
-module.exports = new Builer();
+module.exports = new JsBuilder();

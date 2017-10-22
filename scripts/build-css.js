@@ -3,34 +3,24 @@
  */
 const path = require('path');
 const fs = require('fs-extra');
-
+const Builder = require('./Builder');
 const CONFIG = require('./config');
 
 const paths = CONFIG.paths;
 
-class Builder {
+class CssBuilder extends Builder {
   constructor() {
-    this.files = [];
-  }
-  clear() {
-    this.files = [];
-  }
-  load(filePath) {
-    if (this.files.findIndex(v => v === filePath) >= 0) {
-      return;
-    }
-    this.files.push(filePath);
+    super();
   }
   async compile() {
-    const files = this.files;
+    const files = Object.keys(this.files);
 
     try {
       while (files.length) {
         let file = files.shift();
-        file = file.replace(/^(\/+)?src/, '');
-        const srcFilePath = path.join(paths.src, file);
+        const relativeFilePath = path.relative(CONFIG.paths.src, file);
         const distFilePath = path
-          .join(paths.dist, file)
+          .join(CONFIG.paths.dist, relativeFilePath)
           .replace(/\.scss$/, '.wxss')
           .replace(/\.less$/, '.wxss')
           .replace(/\.sass$/, '.wxss')
@@ -38,16 +28,14 @@ class Builder {
         await fs.ensureFile(distFilePath);
         await fs.writeFile(
           distFilePath,
-          await fs.readFile(srcFilePath, 'utf8'),
+          await fs.readFile(file, 'utf8'),
           'utf8'
         );
-        console.log(`[WXSS]: ${file}`);
       }
-      console.log(`[WXSS]: Done!`);
     } catch (err) {
       console.error(err);
     }
   }
 }
 
-module.exports = new Builder();
+module.exports = new CssBuilder();

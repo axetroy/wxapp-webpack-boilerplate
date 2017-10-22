@@ -12,6 +12,7 @@ module.exports = {
     cwd: process.cwd(),
     root,
     src: path.join(root, 'src'),
-    dist: path.join(root, 'build')
+    dist: path.join(root, 'build'),
+    temp: path.join(root, '.temp')
   }
 };
