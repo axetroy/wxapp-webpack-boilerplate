@@ -221,14 +221,14 @@ class Builer {
         await fs.ensureFile(distFile);
 
         // 引用主体包
-        const requireFile = path.normalize(
-          getRelative(file).replace(/\.js$/, '')
+        const requireFile = utils.unixify(
+          path.normalize(getRelative(file).replace(/\.js$/, ''))
         );
 
         // 写入文件
         await fs.writeFile(
           distFile,
-          `require("${requireFile}")(${id});`,
+          `require("${utils.unixify(requireFile)}")(${id});`,
           'utf8'
         );
         console.info(`[JS]: ${file}`);
