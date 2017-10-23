@@ -3,6 +3,9 @@
  */
 const path = require('path');
 const fs = require('fs-extra');
+const postcss = require('postcss');
+const precss = require('precss');
+const cssnano = require('cssnano');
 const Builder = require('./Builder');
 const CONFIG = require('./config');
 
@@ -23,14 +26,23 @@ class CssBuilder extends Builder {
           .replace(/\.less$/, '.wxss')
           .replace(/\.sass$/, '.wxss')
           .replace(/\.css$/, '.wxss');
+
         await fs.ensureFile(distFilePath);
-        await fs.writeFile(
-          distFilePath,
-          await fs.readFile(file, 'utf8'),
-          'utf8'
-        );
+
+        const result = await postcss(
+          [precss].concat(
+            // 生产环境下压缩css
+            CONFIG.isProduction ? [cssnano({ preset: 'default' })] : []
+          )
+        ).process(await fs.readFile(file, 'utf8'), {
+          from: file,
+          to: distFilePath
+        });
+
+        await fs.writeFile(distFilePath, result.css, 'utf8');
       }
     } catch (err) {
+      console.error(`Compile css error:`);
       console.error(err);
     }
   }

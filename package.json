@@ -25,7 +25,10 @@
     "babel-preset-env": "^1.6.1",
     "chokidar": "^1.7.0",
     "cross-env": "^5.1.0",
+    "cssnano": "^3.10.0",
     "glob": "^7.1.2",
+    "postcss": "^6.0.13",
+    "precss": "^2.0.0",
     "rimraf": "^2.6.2",
     "webpack": "^3.8.1"
   },

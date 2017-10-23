@@ -1,6 +1,12 @@
 /**
  * Created by axetroy on 2017/7/2.
  */
+
+process.on('SIGINT', () => {
+  console.log(new Error(`Exist sigint`));
+  process.exit(1);
+});
+
 const path = require('path');
 const chokidar = require('chokidar');
 const debounce = require('lodash.debounce');
