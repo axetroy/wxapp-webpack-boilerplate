@@ -2,7 +2,7 @@
 
   <view class="row">
     <view class="col-10 offset-1">
-      <view wx:for="{{posts}}" wx:key="index">
+      <view wx:for="{{posts}}" wx:key="index" class="item">
 
         <view class="row">
           <view class="col-2">
