@@ -6,8 +6,6 @@ const fs = require('fs-extra');
 const Builder = require('./Builder');
 const CONFIG = require('./config');
 
-const paths = CONFIG.paths;
-
 class CssBuilder extends Builder {
   constructor() {
     super();

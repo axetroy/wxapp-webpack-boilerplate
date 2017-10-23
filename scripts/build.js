@@ -60,10 +60,18 @@ function handlerFile(file, action) {
   }
 }
 
+/**
+ * load a file
+ * @param file
+ */
 function loadFile(file) {
   return handlerFile(file, 'load');
 }
 
+/**
+ * unload a file
+ * @param file
+ */
 function unloadFile(file) {
   return handlerFile(file, 'unload');
 }
@@ -147,18 +155,23 @@ const build = debounce(async function build() {
         .on('add', filePath => {
           console.info(`[ADD]: ${filePath}`);
           const absFilePath = path.join(process.cwd(), filePath);
+          // load this new file
           loadFile(absFilePath);
+          // recompile
           compile(absFilePath);
         })
         .on('change', filePath => {
           console.info(`[CHANGE]: ${filePath}`);
           const absFilePath = path.join(process.cwd(), filePath);
+          // recompile
           compile(absFilePath);
         })
         .on('unlink', filePath => {
           console.info(`[DELETE]: ${filePath}`);
           const absFilePath = path.join(process.cwd(), filePath);
+          // unload this file
           unloadFile(absFilePath);
+          // recompile
           compile(absFilePath);
         });
     }
