@@ -4,6 +4,6 @@ view{
   display: block;
 }
 
-.hello{
-  height: 10rpx
+view, text {
+  font-size: 0.8rem;
 }

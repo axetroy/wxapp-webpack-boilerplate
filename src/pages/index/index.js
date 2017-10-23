@@ -6,7 +6,6 @@ Page({
     posts: []
   },
   resolveTab(tab) {
-    console.log(tab);
     const obj = {
       share: '分享',
       ask: '问答'

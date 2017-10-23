@@ -4,15 +4,13 @@ view {
 }
 
 text {
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .tab {
@@ -20,25 +18,12 @@ text {
   padding: 2px 4px;
   border-radius: 3px;
   color: #fff;
-  font-size: 12px;
 }
 
 .title {
   white-space: nowrap;
   display: inline-block;
   vertical-align: middle;
-  font-size: 14px;
-  line-height: 30px;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.author {
-  white-space: nowrap;
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 14px;
-  line-height: 30px;
-  overflow: hidden;
-  text-overflow: clip;
 }
