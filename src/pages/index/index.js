@@ -1,22 +1,39 @@
 //index.js
-import wxFetch from 'wxapp-fetch';
+import r2 from 'wxapp-r2';
 
 Page({
   data: {
-    success: 0,
-    fail: 0
+    posts: []
+  },
+  resolveTab(tab) {
+    console.log(tab);
+    const obj = {
+      share: '分享',
+      ask: '问答'
+    };
+    return obj[tab] || tab;
+  },
+  async fetchData() {
+    try {
+      const res = await r2('https://cnodejs.org/api/v1/topics').json;
+      if (res.success) {
+        console.log(res.data);
+        this.setData({
+          posts: res.data.map(d => {
+            d.tag = this.resolveTab(d.tab);
+            return d;
+          })
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
   },
   onLoad: async function() {
-    wxFetch('https://api.github.com')
-      .then(function(res) {
-        return res.json();
-      })
-      .then(data => {
-        console.info(data);
-      })
-      .catch(err => {
-        console.error(err);
-        console.error(err.json());
-      });
+    try {
+      await this.fetchData();
+    } catch (err) {
+      console.error(err);
+    }
   }
 });

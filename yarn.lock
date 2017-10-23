@@ -2,10 +2,6 @@
 # yarn lockfile v1
 
 
-"@axetroy/event-emitter.js@^1.2.4":
-  version "1.2.4"
-  resolved "https://registry.npmjs.org/@axetroy/event-emitter.js/-/event-emitter.js-1.2.4.tgz#6366444b146ad56a035799d3baf0fe0a8812dcaa"
-
 abbrev@1:
   version "1.1.0"
   resolved "https://registry.npmjs.org/abbrev/-/abbrev-1.1.0.tgz#d0554c2256636e2f56e7c2e5ad183f859428d81f"
@@ -753,10 +749,6 @@ block-stream@*:
   resolved "https://registry.npmjs.org/block-stream/-/block-stream-0.0.9.tgz#13ebfe778a03205cfe03751481ebb4b3300c126a"
   dependencies:
     inherits "~2.0.0"
-
-bluebird@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.5.0.tgz#791420d7f551eea2897453a8a77653f96606d67c"
 
 bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.4.0:
   version "4.11.7"
@@ -3509,17 +3501,9 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
 
-wxapp-fetch@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.npmjs.org/wxapp-fetch/-/wxapp-fetch-0.1.0.tgz#1f980c01ddbf68563bf5d850e8df47b611a066f5"
-  dependencies:
-    wxapp-http "^3.0.0"
-
-wxapp-http@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.npmjs.org/wxapp-http/-/wxapp-http-3.1.0.tgz#c7401f546a53b1d20ace771cdd2868f95bc972cd"
-  dependencies:
-    "@axetroy/event-emitter.js" "^1.2.4"
+wxapp-r2@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.npmjs.org/wxapp-r2/-/wxapp-r2-0.0.1.tgz#d3c0fc1bbb4803b65510498bdc86d2a1e158fe1c"
 
 xtend@^4.0.0:
   version "4.0.1"
