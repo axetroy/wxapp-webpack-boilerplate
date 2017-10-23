@@ -29,6 +29,7 @@
     "glob": "^7.1.2",
     "postcss": "^6.0.13",
     "precss": "^2.0.0",
+    "pretty-data": "^0.40.0",
     "rimraf": "^2.6.2",
     "webpack": "^3.8.1"
   },

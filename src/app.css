@@ -2,3 +2,7 @@
 view{
   display: block;
 }
+
+.hello{
+  height: 10rpx
+}
