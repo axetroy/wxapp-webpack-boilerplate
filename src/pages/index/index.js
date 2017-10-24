@@ -12,6 +12,13 @@ Page({
     };
     return obj[tab] || tab;
   },
+  goToDetail(event) {
+    const data = event.currentTarget.dataset;
+    const id = data.postid;
+    wx.navigateTo({
+      url: `/pages/detail/index?id=${id}`
+    });
+  },
   async fetchData() {
     try {
       const res = await r2('https://cnodejs.org/api/v1/topics').json;

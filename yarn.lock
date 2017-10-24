@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/jquery@^2.0.40":
+  version "2.0.48"
+  resolved "https://registry.npmjs.org/@types/jquery/-/jquery-2.0.48.tgz#3e90d8cde2d29015e5583017f7830cb3975b2eef"
+
 abbrev@1:
   version "1.1.0"
   resolved "https://registry.npmjs.org/abbrev/-/abbrev-1.1.0.tgz#d0554c2256636e2f56e7c2e5ad183f859428d81f"
@@ -3294,6 +3298,12 @@ tar@^2.2.1:
 tcomb@^2.5.1:
   version "2.7.0"
   resolved "https://registry.npmjs.org/tcomb/-/tcomb-2.7.0.tgz#10d62958041669a5d53567b9a4ee8cde22b1c2b0"
+
+timeago.js@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.npmjs.org/timeago.js/-/timeago.js-3.0.2.tgz#32a67e7c0d887ea42ca588d3aae26f77de5e76cc"
+  dependencies:
+    "@types/jquery" "^2.0.40"
 
 timers-browserify@^2.0.2:
   version "2.0.2"
