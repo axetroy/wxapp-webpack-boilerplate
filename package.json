@@ -23,7 +23,7 @@
     "babel-loader": "^7.1.2",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
-    "chokidar": "^1.7.0",
+    "chokidar": "^2.0.2",
     "cross-env": "^5.1.0",
     "cssnano": "^3.10.0",
     "glob": "^7.1.2",
