@@ -31,7 +31,7 @@
     "precss": "^2.0.0",
     "pretty-data": "^0.40.0",
     "rimraf": "^2.6.2",
-    "webpack": "^3.8.1"
+    "webpack": "^4.1.0"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
