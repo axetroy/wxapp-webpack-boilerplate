@@ -20,22 +20,22 @@
   "homepage": "https://github.com/axetroy/wxapp-webpack-boilerplate-#readme",
   "devDependencies": {
     "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
+    "babel-loader": "^8.0.5",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
-    "chokidar": "^1.7.0",
+    "chokidar": "^2.1.5",
     "cross-env": "^5.1.0",
-    "cssnano": "^3.10.0",
+    "cssnano": "^4.1.10",
     "glob": "^7.1.2",
-    "postcss": "^6.0.13",
-    "precss": "^2.0.0",
+    "postcss": "^7.0.14",
+    "precss": "^4.0.0",
     "pretty-data": "^0.40.0",
     "rimraf": "^2.6.2",
-    "webpack": "^3.8.1"
+    "webpack": "^4.29.6"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "fs-extra": "^4.0.0",
+    "fs-extra": "^7.0.1",
     "lodash.debounce": "^4.0.8",
     "timeago.js": "^3.0.2",
     "wxapp-r2": "^0.0.1"
