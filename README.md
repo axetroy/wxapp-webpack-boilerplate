@@ -1,5 +1,7 @@
 # 基本webpack的微信小程序开发模板
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/axetroy/wxapp-webpack-boilerplate.svg)](https://greenkeeper.io/)
+
 ## Related
 
 [wxapp-cnode](https://github.com/axetroy/wxapp-cnode) CNode community implement in Wechat mini program.
